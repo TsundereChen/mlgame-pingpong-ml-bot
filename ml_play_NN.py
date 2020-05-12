@@ -56,7 +56,7 @@ def ml_loop(side: str):
 
         # 3.4 Send the instruction for this frame to the game process
         if not ball_served:
-            comm.send_to_game({"frame": scene_info["frame"], "command": "SERVE_TO_LEFT"})
+            comm.send_to_game({"frame": scene_info["frame"], "command": "SERVE_TO_RIGHT"})
             ball_served = True
         else:
             ballX = scene_info["ball"][0]
@@ -65,16 +65,15 @@ def ml_loop(side: str):
             ball_speed_Y = scene_info["ball_speed"][1]
             platform_1P_X = scene_info["platform_1P"][0]
             blocker_X = scene_info["blocker"][0]
-            features = [ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]
-            features = [features]
+            features = [[ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]]
             awaitCommand = model.predict(features)
             print("awaitCommand: {}".format(awaitCommand))
-            if awaitCommand == 0:
+            if awaitCommand == 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "NONE"})
                 print('NONE')
-            elif awaitCommand > 0:
+            elif awaitCommand > 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_RIGHT"})
                 print('RIGHT')
-            elif awaitCommand < 0:
+            elif awaitCommand < 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_LEFT"})
                 print('LEFT')

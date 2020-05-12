@@ -23,8 +23,12 @@ Ball_speed_Y = []
 Platform_1P_X = []
 Platform_2P_X = []
 Blocker_X = []
-Command_1P = []
-Command_2P = []
+Command_1P_LEFT = []
+Command_1P_NONE = []
+Command_1P_RIGHT= []
+Command_2P_LEFT = []
+Command_2P_NONE = []
+Command_2P_RIGHT= []
 
 selectedFeatures = ["Ball_X",
              "Ball_Y",
@@ -32,7 +36,9 @@ selectedFeatures = ["Ball_X",
              "Ball_speed_Y",
              "Platform_1P_X",
              "Blocker_X"]
-selectedTargets = ["Command_1P"]
+selectedTargets = ["Command_1P_LEFT",
+             "Command_1P_NONE",
+             "Command_1P_RIGHT"]
 
 def movement(command):
     if command == "MOVE_LEFT":
@@ -50,8 +56,6 @@ def readPickle(filename):
     platform_1P_x = []
     platform_2P_x = []
     blocker_x = []
-    command_1P = []
-    command_2P = []
     gameLog = pickle.load((open(filename, 'rb')))
     for sceneInfo in gameLog:
         frame.append(sceneInfo['frame'])
@@ -62,8 +66,6 @@ def readPickle(filename):
         platform_1P_x.append(sceneInfo['platform_1P'][0])
         platform_2P_x.append(sceneInfo['platform_2P'][0])
         blocker_x.append(sceneInfo['blocker'][0])
-        command_1P.append(movement(sceneInfo['command_1P']))
-        command_2P.append(movement(sceneInfo['command_2P']))
     return frame, \
            ball_x, \
            ball_y, \
@@ -71,9 +73,47 @@ def readPickle(filename):
            ball_speed_y, \
            platform_1P_x, \
            platform_2P_x, \
-           blocker_x, \
-           command_1P, \
-           command_2P
+           blocker_x
+
+def readCommandPickle(filename):
+    command_1P_LEFT = []
+    command_1P_NONE = []
+    command_1P_RIGHT= []
+    command_2P_LEFT = []
+    command_2P_NONE = []
+    command_2P_RIGHT= []
+    gameLog = pickle.load((open(filename, 'rb')))
+    for sceneInfo in gameLog:
+        if movement(sceneInfo['command_1P']) == -1:
+            command_1P_LEFT.append(1)
+            command_1P_NONE.append(0)
+            command_1P_RIGHT.append(0)
+        elif movement(sceneInfo['command_1P']) ==  0:
+            command_1P_LEFT.append(0)
+            command_1P_NONE.append(1)
+            command_1P_RIGHT.append(0)
+        elif movement(sceneInfo['command_1P']) ==  1:
+            command_1P_LEFT.append(0)
+            command_1P_NONE.append(0)
+            command_1P_RIGHT.append(1)
+        if movement(sceneInfo['command_2P']) == -1:
+            command_2P_LEFT.append(1)
+            command_2P_NONE.append(0)
+            command_2P_RIGHT.append(0)
+        elif movement(sceneInfo['command_2P']) ==  0:
+            command_2P_LEFT.append(0)
+            command_2P_NONE.append(1)
+            command_2P_RIGHT.append(0)
+        elif movement(sceneInfo['command_2P']) ==  1:
+            command_2P_LEFT.append(0)
+            command_2P_NONE.append(0)
+            command_2P_RIGHT.append(1)
+    return command_1P_LEFT, \
+           command_1P_NONE, \
+           command_1P_RIGHT, \
+           command_2P_LEFT, \
+           command_2P_NONE, \
+           command_2P_RIGHT
 
 def fileList(path):
     return os.listdir(path)
@@ -88,15 +128,20 @@ def importData():
     global Platform_1P_X
     global Platform_2P_X
     global Blocker_X
-    global Command_1P
-    global Command_2P
+    global Command_1P_LEFT
+    global Command_1P_NONE
+    global Command_1P_RIGHT
+    global Command_2P_LEFT
+    global Command_2P_NONE
+    global Command_2P_RIGHT
 
     path = os.path.dirname(os.path.realpath(__file__))
     path = path + pickleDir
     files = fileList(path)
     for filename in files:
         fullpath = path + "/" + filename
-        frame, ball_x, ball_y, ball_speed_x, ball_speed_y, platform_1P_x, platform_2P_x, blocker_x, command_1P, command_2P = readPickle(fullpath)
+        frame, ball_x, ball_y, ball_speed_x, ball_speed_y, platform_1P_x, platform_2P_x, blocker_x = readPickle(fullpath)
+        command_1P_LEFT, command_1P_NONE, command_1P_RIGHT, command_2P_LEFT, command_2P_NONE, command_2P_RIGHT = readCommandPickle(fullpath)
         Frame += frame
         Ball_X += ball_x
         Ball_Y += ball_y
@@ -105,12 +150,18 @@ def importData():
         Platform_1P_X += platform_1P_x
         Platform_2P_X += platform_2P_x
         Blocker_X += blocker_x
-        Command_1P += command_1P
-        Command_2P += command_2P
+        Command_1P_LEFT += command_1P_LEFT
+        Command_1P_NONE += command_1P_NONE
+        Command_1P_RIGHT += command_1P_RIGHT
+        Command_2P_LEFT += command_2P_LEFT
+        Command_2P_NONE += command_2P_NONE
+        Command_2P_RIGHT += command_2P_RIGHT
     originalData = pd.DataFrame({'Frame':Frame,
         'Ball_X': Ball_X, 'Ball_Y': Ball_Y, 'Ball_speed_X': Ball_speed_X, 'Ball_speed_Y': Ball_speed_Y,
-        'Platform_1P_X': Platform_1P_X, 'Platform_2P_X': Platform_2P_X, 'Blocker_X': Blocker_X, 'Command_1P': Command_1P, 'Command_2P': Command_2P})
-    print("Import done")
+        'Platform_1P_X': Platform_1P_X, 'Platform_2P_X': Platform_2P_X, 'Blocker_X': Blocker_X,
+        'Command_1P_LEFT': Command_1P_LEFT, 'Command_1P_NONE': Command_1P_NONE, 'Command_1P_RIGHT': Command_1P_RIGHT,
+        'Command_2P_LEFT': Command_2P_LEFT, 'Command_2P_NONE': Command_2P_NONE, 'Command_2P_RIGHT': Command_2P_RIGHT})
+    print("Import done\n")
     originalData = originalData.reindex(np.random.permutation(originalData.index))
     trainingData = originalData.head(160000)
     validateData = originalData.tail(2000)
@@ -135,16 +186,17 @@ def targetSelection(trainingData, validateData):
 def createFeatureColumns(inputFeatures):
     return set([tf.feature_column.numeric_column(my_feature) for my_feature in inputFeatures])
 
-def createModel(learningRate, featureLayer):
+def createModel(learningRate):
     model = Sequential()
     model.add(Dense(units = 6, activation=None))
     # Hidden layers
     model.add(Dense(units = 8, activation='relu'))
+    model.add(Dense(units = 6, activation='relu'))
     model.add(Dense(units = 4, activation='relu'))
     model.add(Dense(units = 2, activation='sigmoid'))
     # Output layer
-    model.add(Dense(units = 1))
-    model.compile(optimizer=Adam(lr=learningRate), loss='mean_squared_error',metrics=[tf.keras.metrics.MeanSquaredError()])
+    model.add(Dense(units = 3))
+    model.compile(optimizer=Adam(lr=learningRate), loss='mean_squared_error',metrics=['accuracy'])
     return model
 
 def trainModel(model, feature, label, epochs, batchSize=None):
@@ -153,48 +205,39 @@ def trainModel(model, feature, label, epochs, batchSize=None):
     epochs = history.epoch
 
     hist = pd.DataFrame(history.history)
-    mse = hist["mean_squared_error"]
-    return epochs, mse
+    accuracy = hist["accuracy"]
+    return epochs, accuracy
 
 def evaluateModel(model, feature, label, batchSize = None):
     # features = {name:np.array(value) for name, value in feature.items()}
     return model.evaluate(x = feature, y = label, batch_size = batchSize)
 
-def plotLossCurve(epochs, mse):
+def plotLossCurve(epochs, accuracy):
     plt.figure()
     plt.xlabel("Epoch")
-    plt.ylabel("Mean Squared Error")
+    plt.ylabel("Accuracy")
 
-    plt.plot(epochs, mse, label="Loss")
+    plt.plot(epochs, accuracy, label="Accuracy")
     plt.legend()
-    plt.ylim([mse.min()*0.95, mse.max()*1.03])
+    plt.ylim([accuracy.min()*0.95, accuracy.max()*1.03])
     plt.show()
 
 if __name__ == '__main__':
     trainingData, validateData = importData()
-    dataSummary(trainingData, validateData)
     # Select features
     trainingFeatures, validateFeatures = featureSelection(trainingData, validateData)
     # Select targets
     trainingTargets, validateTargets   = targetSelection(trainingData, validateData)
 
-    # Print data description about trainingFeatures, trainingTargets
-    dataSummary(trainingFeatures, trainingTargets)
-    # Print data description about validateFeatures, validateTargets
-    dataSummary(validateFeatures, validateTargets)
-
-    featureColumns = createFeatureColumns(trainingFeatures)
-    featureLayer = DenseFeatures(featureColumns)
-
     learningRate = 0.001
     epochs = 160
     batchSize = 1000
 
-    model = createModel(learningRate, featureLayer)
-    epochs, mse = trainModel(model, trainingFeatures, trainingTargets, epochs, batchSize)
+    model = createModel(learningRate)
+    epochs, accuracy = trainModel(model, trainingFeatures, trainingTargets, epochs, batchSize)
     print(model.summary())
 
-    plotLossCurve(epochs, mse)
+    plotLossCurve(epochs, accuracy)
 
     print("\nEvaluate the new model against validation set:")
     loss, acc = evaluateModel(model, validateFeatures, validateTargets, batchSize)
