@@ -69,6 +69,7 @@ def ml_loop(side: str):
             features = [[ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]]
             prediction = model.predict(features)
             awaitCommand = np.argmax(prediction[0])
+            print(awaitCommand)
             if awaitCommand == 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "NONE"})
                 print('NONE')
