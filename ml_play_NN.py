@@ -67,10 +67,8 @@ def ml_loop(side: str):
             platform_1P_X = scene_info["platform_1P"][0]
             blocker_X = scene_info["blocker"][0]
             features = [[ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]]
-            probabilityModel = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
-            prediction = probabilityModel.predict(features)
+            prediction = model.predict(features)
             awaitCommand = np.argmax(prediction[0])
-            print(awaitCommand)
             if awaitCommand == 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "NONE"})
                 print('NONE')
