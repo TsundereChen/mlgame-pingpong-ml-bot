@@ -6,6 +6,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import DenseFeatures
 from tensorflow.keras.optimizers import Adam
+import numpy as np
 
 
 # Import the necessary modules and classes
@@ -66,14 +67,16 @@ def ml_loop(side: str):
             platform_1P_X = scene_info["platform_1P"][0]
             blocker_X = scene_info["blocker"][0]
             features = [[ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]]
-            awaitCommand = model.predict(features)
-            print("awaitCommand: {}".format(awaitCommand))
+            probabilityModel = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
+            prediction = probabilityModel.predict(features)
+            awaitCommand = np.argmax(prediction[0])
+            print(awaitCommand)
             if awaitCommand == 1:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "NONE"})
                 print('NONE')
-            elif awaitCommand > 1:
+            elif awaitCommand == 2:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_RIGHT"})
                 print('RIGHT')
-            elif awaitCommand < 1:
+            elif awaitCommand == 0:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_LEFT"})
                 print('LEFT')
