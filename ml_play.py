@@ -2,12 +2,8 @@
 The template of the script for the machine learning process in game pingpong
 """
 import tensorflow as tf
-from tensorflow.keras.layers import Dense
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import DenseFeatures
-from tensorflow.keras.optimizers import Adam
 import numpy as np
-
+import os
 
 # Import the necessary modules and classes
 from mlgame.communication import ml as comm
@@ -31,7 +27,8 @@ def ml_loop(side: str):
     # === Here is the execution order of the loop === #
     # 1. Put the initialization code here
     ball_served = False
-    model = tf.keras.models.load_model('saved_model/myModel')
+    curPath = os.path.abspath(os.path.dirname(__file__))
+    model = tf.keras.models.load_model(curPath + '/saved_model/myModel')
 
     # 2. Inform the game process that ml process is ready
     comm.ml_ready()
@@ -68,13 +65,13 @@ def ml_loop(side: str):
             blocker_X = scene_info["blocker"][0]
             features = [[ballX, ballY, ball_speed_X, ball_speed_Y, platform_1P_X, blocker_X]]
             prediction = model.predict(features)
-            awaitCommand = np.argmax(prediction[0])
-            if awaitCommand == 1:
-                comm.send_to_game({"frame": scene_info["frame"], "command": "NONE"})
-                print('NONE')
-            elif awaitCommand == 2:
+            if prediction > 0:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_RIGHT"})
-                print('RIGHT')
-            elif awaitCommand == 0:
+                print("MOVE_RIGHT")
+            elif prediction < 0:
                 comm.send_to_game({"frame": scene_info["frame"], "command": "MOVE_LEFT"})
-                print('LEFT')
+                print("MOVE_LEFT")
+            else:
+                comm.send_to_game({"frame": scene_info["frame"], "command": "SERVE_TO_RIGHT"})
+                print("NONE")
+
